@@ -1,11 +1,1 @@
-﻿package code {
-	
-	public class Player {
-
-		public function Player() {
-			// constructor code
-		}
-
-	}
-	
-}
+﻿package code {		public class Player extends Vector2 {		public function Player() {			// constructor code								}				//detect falling		//provide upward force for contact with ground		//provide overall downward gravity force	}	}
