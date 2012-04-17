@@ -32,13 +32,16 @@
 			
 			if(this.x < player.x)
 			{
-				if(vx < speed)
+				if(vx < speed){
 					vx += speed/2;
+					this.scaleX=-1;
+				}
 			}
 			else if(this.x > player.x)
 			{
 				if(vx > -speed)
 					vx -= speed/2;
+					this.scaleX=1;
 			}
 			
 			if(this.y > 400)
@@ -52,6 +55,7 @@
 			}
 			
 			this.x += vx;
+			spacing();
 		}
 		
 		//Gravity and move
@@ -71,6 +75,11 @@
 			else
 				knockback();
 				
+		}
+		
+		public function spacing(){
+			
+			//todo: have the enemies space themseleves out so they won't overlap directly on top of each other
 		}
 		
 		private function die():void
