@@ -65,8 +65,7 @@
 				{
 					if((enemies[j] as Enemy).hitTestObject((bulletManager.bullets[i] as Bullet)))
 					{
-						g.removeChild(enemies[j]);
-						enemies.splice(j, 1);
+						enemies[j].takeDamage(bulletManager.bullets[i].bulDamage);
 						j--;
 						bulletManager.killBullet(i);
 						i = bulletManager.bullets.length;

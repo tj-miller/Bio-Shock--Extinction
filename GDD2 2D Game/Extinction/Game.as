@@ -8,10 +8,13 @@
 	import flash.events.*;
 	import flash.geom.Point;
 	import flash.utils.getTimer;
+	import flash.ui.Mouse;
 	
 	public class Game extends Sprite
 	{
 		private var layer:Sprite = new Sprite();
+		public var gLayer:Sprite = new Sprite();
+		public var eLayer:Sprite = new Sprite();
 		private var c:Cursor = new Cursor();
 		private var doc:Document;
 		private var curLevel:Level = new Level();
@@ -24,7 +27,7 @@
 		//Declare EnemyManager here
 		//Declare BulletManager here
 		public var player:Player;
-		private var bManager:BulletManager;
+		public var bManager:BulletManager;
 		private var enMan:EnemyManager;
 		
 		public function Game(d:Document)
@@ -35,6 +38,7 @@
 			
 			//add event listeners
 			doc.addEventListener(Event.ENTER_FRAME, update);
+			Mouse.hide();
 			
 			player = new Player(doc, this);
 			bManager = new BulletManager(doc, layer, player);
@@ -43,8 +47,11 @@
 			
 			addChild(curLevel);
 			addChild(layer);
+			addChild(gLayer);
 			addChild(player);
+			addChild(eLayer);
 			addChild(c);
+			
 			enMan.spawnEnemies();
 		}
 		
@@ -58,14 +65,15 @@
 			time += getTimer();
 			//update player here
 			//update enemyManager here
-			bManager.update();
-			player.update();
-			enMan.update();
 			
 			if(Math.abs(player.x-stage.stageWidth/2) > 50)
 			{
 				centerCamera();
 			}
+			
+			bManager.update();
+			player.update();
+			enMan.update();
 		}
 		
 		public function centerCamera():void

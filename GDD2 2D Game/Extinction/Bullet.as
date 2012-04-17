@@ -9,10 +9,13 @@
 		private var vx:Number;
 		private var vy:Number;
 		private var speed:Number;
+		public var bulDamage:Number;
 		
 		//consructor
-		public function Bullet()
+		public function Bullet(dmg:Number)
 		{
+			bulDamage = dmg;
+			
 			super();
 			
 			speed = 25;

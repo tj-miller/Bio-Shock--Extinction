@@ -14,6 +14,16 @@
 		private var doc:Document;
 		private var layer:Sprite;
 		private var player:Player;
+		public var firing:Boolean;
+		private var reloading:Boolean;
+		private var count:int;
+		
+		private var cooldownTime:int;
+		private var xOffset:Number;
+		private var yOffset:Number;
+		private var reloadTime:int;
+		private var clipSize:int;
+		private var bulletDamage:Number;
 		
 		//bullet manager constructor, sets pointers and adds an event listener for click
 		//(the click event should be change to a mouse down once cooldown is put in)
@@ -22,10 +32,11 @@
 			doc = d;
 			layer = aLayer;
 			player = p;
+			firing = false;
+			reloading = false;
+			updateStats();
 			
 			super();
-			
-			doc.stage.addEventListener(MouseEvent.CLICK, fireBullet);
 		}
 		
 		// get bullet array
@@ -34,9 +45,25 @@
 			return bullets;
 		}
 		
+		private function updateStats():void
+		{
+			if(player.curWeapon.isGun)
+			{
+				cooldownTime = (player.curWeapon as Gun).cooldownTime;
+				xOffset = (player.curWeapon as Gun).xOffset;
+				yOffset = (player.curWeapon as Gun).yOffset;
+				reloadTime = (player.curWeapon as Gun).reloadTime;
+				clipSize = (player.curWeapon as Gun).clipSize;
+				bulletDamage = (player.curWeapon as Gun).bulletDamage;
+			}
+		}
+		
 		//update function, calls move for all bullets and cleans up any more than a screen and a half away
 		public function update():void
 		{
+			updateStats();
+			
+			count++;
 			var b:Bullet;
 			
 			for(var i:int = 0; i < bullets.length; i++)
@@ -46,28 +73,73 @@
 			}
 			
 			cleanUp();
+			
+			if (firing && count > cooldownTime && !reloading)
+			{
+				if(clipSize > (player.curWeapon as Gun).shotsFired)
+				{
+					fireBullet();
+					count = 0;
+					(player.curWeapon as Gun).shotsFired++;
+					trace(clipSize - (player.curWeapon as Gun).shotsFired);
+				}
+				else
+				{
+					reloading = true;
+					count = 0;
+				}
+			}
+			
+			if(reloading && count > reloadTime)
+			{
+				reloading = false;
+				(player.curWeapon as Gun).shotsFired = 0;
+				count = 0;
+			}
+		}
+		
+		private function stopFiring(e:MouseEvent):void
+		{
+			firing = false;
+		}
+		
+		private function fireGun(e:MouseEvent):void
+		{
+			firing = true;
 		}
 		
 		//fires a bullet on mouse click, right now its from the origin to the cursor
-		public function fireBullet(e:MouseEvent):void
+		public function fireBullet():void
 		{
-			var b:Bullet = new Bullet();
-			var v:Vector2 = new Vector2(e.stageX-player.x, e.stageY-(player.y-30));
+			var b:Bullet = new Bullet((player.curWeapon as Gun).bulletDamage);
+			var v:Vector2 = new Vector2(mouseX-player.x, mouseY-(player.y+player.arm_mc.y));
 			v.normalize();
-			var p:Point = new Point(player.x+player.arm_mc.x, player.y+player.arm_mc.y);
-			if(mouseX < player.x)
+			var p:Point = new Point(player.curWeapon.x, player.curWeapon.y);
+			if (Math.abs(mouseX - player.x) > 20 || Math.abs(mouseY - (player.y+player.arm_mc.y)) > 80)
 			{
-				p.x -= Math.cos(player.arm_mc.rotation*Math.PI/180)*90;
-				p.y -= Math.sin(player.arm_mc.rotation*Math.PI/180)*90;
+				if(mouseX < player.x)
+				{
+					p.x -= Math.cos(-player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).xOffset;
+					p.y -= Math.sin(-player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).xOffset;
+					
+					p.x += Math.sin(-player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).yOffset;
+					p.y -= Math.cos(-player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).yOffset;
+				}
+				else
+				{
+					p.x += Math.cos(player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).xOffset;
+					p.y += Math.sin(player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).xOffset;
+					
+					p.x += Math.sin(player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).yOffset;
+					p.y -= Math.cos(player.arm_mc.rotation*Math.PI/180)*(player.curWeapon as Gun).yOffset;
+				}
+				
+				b.fire(p,v);
+				layer.addChild(b);
+				bullets.push(b);
+				
+				player.shootGun();
 			}
-			else
-			{
-				p.x += Math.cos(player.arm_mc.rotation*Math.PI/180)*90;
-				p.y += Math.sin(player.arm_mc.rotation*Math.PI/180)*90;
-			}
-			b.fire(p,v);
-			layer.addChild(b);
-			bullets.push(b);
 		}
 		
 		//cleans up any bullet far off screen
